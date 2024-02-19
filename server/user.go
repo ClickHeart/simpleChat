@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 type User struct {
 	Name string
@@ -28,9 +31,16 @@ func NewUser(conn net.Conn) *User {
 
 // 监听当前User channel的方法，一旦有消息直接发送给客户端
 func (user *User) ListenMessage() {
-	for {
-		msg := <-user.C
-		user.conn.Write([]byte(msg + "\n"))
+	for msg := range user.C {
+		_, err := user.conn.Write([]byte(msg + "\n"))
+		if err != nil {
+			fmt.Println(msg)
+			panic(err)
+		}
+	}
+	err := user.conn.Close()
+	if err != nil {
+		panic(err)
 	}
 }
 
